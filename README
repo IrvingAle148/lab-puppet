@@ -21,8 +21,65 @@ Antes de comenzar, asegúrate de tener instalado en tu computadora:
 
 ## Instrucciones Paso a Paso
 
-### 1. Clonar o descargar el repositorio
-Abre tu terminal y clona este repositorio (o entra a la carpeta del proyecto):
-```bash
+1. Clonar el repositorio
+
+Abre tu terminal en tu computadora y entra a la carpeta del proyecto clonado:
+
 git clone <url-de-tu-repositorio>
-cd <nombre-de-la-carpeta>
+cd lab-puppet
+
+---
+
+2. Levantar el entorno virtualizado
+
+Inicia la máquina virtual con Vagrant para preparar el sistema operativo base (Ubuntu 22.04 LTS) y sincronizar los archivos del proyecto:
+
+vagrant up
+
+
+Una vez que el proceso finalice, conéctate a la terminal de la máquina virtual por SSH:
+
+vagrant ssh
+
+---
+
+3. Aplicar el Manifiesto de Puppet (Primer Despliegue)
+
+Dentro de la máquina virtual, ejecuta el manifiesto principal para aprovisionar e instalar automáticamente el servidor web Apache junto con la página web personalizada:
+
+sudo puppet apply /vagrant/manifests/site.pp
+
+
+Comprueba que el servidor responde correctamente ejecutando una petición local:
+
+curl localhost
+
+---
+
+4. Simular un Fallo (Afectar el Estado del Sistema)
+
+Para demostrar la capacidad de reacción ante incidentes o errores humanos, simula un sabotaje eliminando el archivo principal del sitio web:
+
+sudo rm /var/www/html/index.html
+
+
+(Si intentas verificar el servicio, notarás que el archivo ya no se encuentra disponible y el servidor ha salido del estado deseado).
+
+---
+
+5. Autorreparación e Idempotencia
+
+Vuelve a ejecutar el manifiesto de Puppet para que analice la discrepancia y aplique la corrección autónoma:
+
+sudo puppet apply /vagrant/manifests/site.pp
+
+
+---
+
+Puppet detectará que el archivo web desapareció, lo recreará automáticamente y refrescará el servicio de Apache.
+Si ejecutas el comando por tercera vez consecutiva, notarás que el sistema no realiza ningún cambio, confirmando que la infraestructura se encuentra idéntica al estado deseado.
+
+Integración con Docker
+
+Aunque esta práctica se ejecutó y demostró utilizando máquinas virtuales con Vagrant y Puppet Standalone, en arquitecturas DevOps modernas este mismo flujo declarativo puede conceptualizarse mediante un archivo Dockerfile.
+El contenedor automatiza la instalación del agente de Puppet, inyecta los manifiestos y despliega el servicio de forma portable y aislada sin depender de un sistema operativo virtualizado completo.

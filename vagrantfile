@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/jammy64" # Ubuntu 22.04 LTS
+
+  config.vm.boot_timeout = 1000
+  
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+    vb.cpus = 2
+  end
+
+  config.vm.synced_folder ".", "/vagrant"
+
+  # Script de aprovisionamiento para instalar Puppet automáticamente al arrancar
+  config.vm.provision "shell", inline: <<-SHELL
+    echo "=== Actualizando sistema e instalando Puppet == "
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update
+    apt-get install -y wget
+    
+    # Descargar e instalar el repositorio oficial de Puppet para Ubuntu Jammy
+    wget https://apt.puppet.com/puppet8-release-jammy.deb
+    dpkg -i puppet8-release-jammy.deb
+    apt-get update
+    
+    # Instalar el paquete de Puppet
+    apt-get install -y puppet-agent
+    ln -s /opt/puppetlabs/bin/puppet /usr/bin/puppet
+
+    echo "=== Puppet instalado correctamente ==="
+  SHELL
+end

@@ -1,0 +1,28 @@
+# Laboratorio de Automatización y Despliegue con Puppet
+
+Práctica desarrollada para la materia por: 
+**Gerardo Abraham Barron Gomez,**
+**Fidel Cruz Reyes**
+**Irving Alejandro Seguin Luna**.
+
+---
+
+## Objetivo
+Demostrar el uso de **Puppet** como herramienta de **Gestión de Configuración**, aplicando el principio de **idempotencia** para configurar un servidor web (Apache) de manera totalmente automatizada.
+
+---
+
+## Requisitos Previos
+Antes de comenzar, asegúrate de tener instalado en tu computadora:
+1. [VirtualBox](https://www.virtualbox.org/)
+2. [Vagrant](https://www.developer.hashicorp.com/vagrant/downloads)
+
+---
+
+## Instrucciones Paso a Paso
+
+### 1. Clonar o descargar el repositorio
+Abre tu terminal y clona este repositorio (o entra a la carpeta del proyecto):
+```bash
+git clone <url-de-tu-repositorio>
+cd <nombre-de-la-carpeta>

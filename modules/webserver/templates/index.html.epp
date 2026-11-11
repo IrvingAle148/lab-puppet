@@ -1,0 +1,15 @@
+<%- | String $titulo, String $color, String $hostname, String $ip, String $sistema | -%>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title><%= $titulo %> - <%= $hostname %></title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align: center; margin: 0; padding-top: 60px; min-height: 100vh; background: <%= $color %>; color: #ffffff;">
+  <h1><%= $titulo %></h1>
+  <h2>Servidor: <%= $hostname %></h2>
+  <p>IP: <b><%= $ip %></b> &middot; Sistema: <b><%= $sistema %></b></p>
+  <p>Esta página fue generada por <b>Puppet</b> con datos de <b>Facter</b>.</p>
+  <p>Integrantes: Gerardo, Fidel e Irving.</p>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# Datos locales de Vagrant (incluye llaves SSH privadas): no se suben al repositorio
+.vagrant/
+*.log
+*.deb

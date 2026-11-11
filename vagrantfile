@@ -1,34 +1,52 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+# Laboratorio Puppet: un servidor web (web01) configurado automáticamente con Puppet.
+# Fase 1 (Vagrant): crea la máquina virtual e instala Puppet.
+# Fase 2 (Puppet):  configura el servidor según el código de manifests/ y modules/.
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/jammy64" # Ubuntu 22.04 LTS
-
+  config.vm.box = "ubuntu/jammy64"      # Ubuntu 22.04 LTS
+  config.vm.box_check_update = false
   config.vm.boot_timeout = 1000
-  
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "2048"
-    vb.cpus = 2
-  end
-
+  config.vm.hostname = "web01"
+  config.vm.network "private_network", ip: "192.168.56.11"
   config.vm.synced_folder ".", "/vagrant"
 
-  # Script de aprovisionamiento para instalar Puppet automáticamente al arrancar
-  config.vm.provision "shell", inline: <<-SHELL
-    echo "=== Actualizando sistema e instalando Puppet == "
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y wget
-    
-    # Descargar e instalar el repositorio oficial de Puppet para Ubuntu Jammy
-    wget https://apt.puppet.com/puppet8-release-jammy.deb
-    dpkg -i puppet8-release-jammy.deb
-    apt-get update
-    
-    # Instalar el paquete de Puppet
-    apt-get install -y puppet-agent
-    ln -s /opt/puppetlabs/bin/puppet /usr/bin/puppet
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "lab-puppet-web01"
+    vb.memory = "1536"
+    vb.cpus = 1
+  end
 
-    echo "=== Puppet instalado correctamente ==="
+  # Instala Puppet solo si no está instalado (el aprovisionamiento también es idempotente)
+  config.vm.provision "shell", inline: <<~SHELL
+    export DEBIAN_FRONTEND=noninteractive
+    export NEEDRESTART_SUSPEND=1         # evita que apt reinicie servicios (y corte el SSH de Vagrant)
+
+    # Esperar a que Ubuntu termine su configuración de primer arranque y apagar
+    # servicios que no se usan en el laboratorio (ahorran RAM y no bloquean apt).
+    timeout 300 cloud-init status --wait >/dev/null 2>&1 || true
+    systemctl disable --now snapd.service snapd.socket snapd.seeded.service >/dev/null 2>&1 || true
+    systemctl disable --now unattended-upgrades apt-daily.timer apt-daily-upgrade.timer >/dev/null 2>&1 || true
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do echo "Esperando a apt..."; sleep 5; done
+
+    if [ ! -x /opt/puppetlabs/bin/puppet ]; then
+      echo "=== Instalando Puppet 8 ==="
+      apt-get update -qq
+      wget -q -O /tmp/puppet8.deb https://apt.puppet.com/puppet8-release-jammy.deb
+      dpkg -i /tmp/puppet8.deb
+      apt-get update -qq
+      apt-get install -y --no-install-recommends puppet-agent
+      rm -f /tmp/puppet8.deb
+      apt-get clean               
+    fi
+    ln -sf /opt/puppetlabs/bin/puppet /usr/bin/puppet
+    ln -sf /opt/puppetlabs/bin/facter /usr/bin/facter
+
+    # Atajo "aplicar": ejecuta el manifiesto con los módulos del proyecto
+    cat > /usr/local/bin/aplicar <<'EOF'
+    #!/bin/bash
+    exec sudo /opt/puppetlabs/bin/puppet apply --modulepath=/vagrant/modules /vagrant/manifests/site.pp "$@"
+    EOF
+    chmod +x /usr/local/bin/aplicar
+    echo "=== Puppet listo en $(hostname) ==="
   SHELL
 end

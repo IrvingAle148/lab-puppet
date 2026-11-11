@@ -1,0 +1,2 @@
+# Mantener finales de línea Unix (LF) para que los archivos funcionen dentro de las VMs Linux
+* text=auto eol=lf
